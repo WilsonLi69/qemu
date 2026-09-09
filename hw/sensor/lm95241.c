@@ -16,7 +16,6 @@ struct LM95241State {
   /*< public >*/
 
   uint8_t pointer;
-  uint8_t length;
 
   int32_t local_temperature;
   int32_t remote1_temperature;
@@ -48,13 +47,10 @@ static int lm95241_event(I2CSlave *i2c, enum i2c_event event) {
   LM95241State *s = LM95241(i2c);
   switch (event) {
   case I2C_START_SEND:
-    s->length = 0;
     break;
   case I2C_START_RECV:
-    s->length = 0;
     break;
   case I2C_FINISH:
-    s->length = 0;
     break;
   default:
     break;
@@ -95,7 +91,9 @@ static uint8_t lm95241_recv(I2CSlave *i2c) {
     res = 0xFF;
     break;
   }
-  s->length++;
+
+  trace_lm95241_read(s->i2c.address, s->pointer);
+
   return res;
 }
 
@@ -104,8 +102,7 @@ static int lm95241_send(I2CSlave *i2c, uint8_t data) {
 
   s->pointer = data;
 
-  s->length++;
-
+  trace_lm95241_write(s->i2c.address, s->pointer);
   return 0; /* ACK */
 }
 
@@ -145,5 +142,3 @@ static void lm95241_register_types(void) {
 }
 
 type_init(lm95241_register_types)
-
-    // #error "寫完後還沒對過tmp105" // FIXME:
